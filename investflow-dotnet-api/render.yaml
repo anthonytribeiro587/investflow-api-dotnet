@@ -9,6 +9,6 @@ services:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
       - key: CORS_ORIGINS
-        value: https://crm-nextlead.vercel.app,http://localhost:3000
+        value: https://invest-flow-azure.vercel.app
       - key: SUPABASE_DB_URL
         sync: false

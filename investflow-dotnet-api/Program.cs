@@ -8,7 +8,7 @@ builder.Services.AddSwaggerGen();
 
 var allowedOrigins = builder.Configuration["CORS_ORIGINS"]?
     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-    ?? new[] { "http://localhost:3000", "https://crm-nextlead.vercel.app" };
+    ?? new[] { "https://invest-flow-azure.vercel.app" };
 
 builder.Services.AddCors(options =>
 {
