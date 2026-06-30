@@ -1,4 +1,3 @@
-using System.Data;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,25 +19,49 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI();
 app.UseCors("InvestFlowFrontend");
-
-app.MapGet("/", () => Results.Redirect("/swagger"));
-
-app.MapGet("/health", () => new
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    status = "online",
-    api = "InvestFlow API .NET",
-    stack = "ASP.NET Core + C#",
-    message = "Prova técnica da migração do InvestFlow para a stack .NET."
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "InvestFlow API .NET v1");
+    options.RoutePrefix = "swagger";
 });
+
+app.MapGet("/", () => Results.Ok(new
+{
+    sistema = "InvestFlow API .NET",
+    status = "online",
+    stack = "ASP.NET Core + C# + PostgreSQL/Supabase",
+    mensagem = "Prova técnica de migração do InvestFlow para a stack .NET da empresa.",
+    endpoints = new[]
+    {
+        "/health",
+        "/api/health",
+        "/api/arquitetura",
+        "/api/dashboard",
+        "/api/solicitacoes",
+        "/swagger"
+    }
+}));
+
+app.MapGet("/health", HealthResponse);
+app.MapGet("/api/health", HealthResponse);
+app.MapGet("/api/status", HealthResponse);
 
 app.MapGet("/api/arquitetura", () => new
 {
     prototipoAtual = "Next.js + Supabase + Vercel",
     provaDotnet = "ASP.NET Core Web API + PostgreSQL/Supabase",
     producaoSugerida = ".NET + SQL Server/Azure SQL ou banco homologado + autenticação corporativa",
+    migracao = new[]
+    {
+        "Mapear tabelas, campos, status e regras do protótipo atual",
+        "Criar API oficial em ASP.NET Core",
+        "Migrar banco para SQL Server/Azure SQL ou banco homologado pela TI",
+        "Integrar autenticação corporativa",
+        "Adicionar auditoria, logs, backups e permissões por perfil",
+        "Conectar o frontend por módulos: dashboard, solicitações, aprovações, orçamento e relatórios"
+    },
     mensagem = "O InvestFlow não depende do Supabase. O Supabase foi usado para acelerar o protótipo; a camada oficial pode seguir o padrão técnico da empresa."
 });
 
@@ -59,7 +82,6 @@ app.MapGet("/api/dashboard", async () =>
         var aprovadas = await ScalarLong(conn, "select count(*) from solicitacoes where status ilike '%aprovada%';");
         var rejeitadas = await ScalarLong(conn, "select count(*) from solicitacoes where status ilike '%rejeitada%';");
 
-        // Se alguma coluna ainda não existir no banco do protótipo, a API cai para dados demonstrativos.
         decimal valorOrcado = 0;
         decimal valorRealizado = 0;
 
@@ -70,7 +92,7 @@ app.MapGet("/api/dashboard", async () =>
         }
         catch
         {
-            // Mantém os KPIs principais mesmo se itens_projeto/colunas ainda não estiverem padronizados.
+            // Mantém os KPIs principais mesmo se a tabela/colunas de orçamento ainda estiverem diferentes no protótipo.
         }
 
         var saldo = valorOrcado - valorRealizado;
@@ -145,9 +167,17 @@ app.MapGet("/api/solicitacoes", async () =>
 
 app.Run();
 
+static object HealthResponse() => new
+{
+    status = "online",
+    api = "InvestFlow API .NET",
+    stack = "ASP.NET Core + C#",
+    timestampUtc = DateTime.UtcNow,
+    message = "Prova técnica da migração do InvestFlow para a stack .NET."
+};
+
 static string? GetConnectionString(IConfiguration config)
 {
-    // Aceita os dois formatos para facilitar deploy.
     return config.GetConnectionString("InvestFlow")
         ?? config["SUPABASE_DB_URL"]
         ?? config["DATABASE_URL"];
