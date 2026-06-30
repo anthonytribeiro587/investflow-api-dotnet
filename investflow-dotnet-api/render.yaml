@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: investflow-api-dotnet
+    env: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: CORS_ORIGINS
+        value: https://crm-nextlead.vercel.app,http://localhost:3000
+      - key: SUPABASE_DB_URL
+        sync: false
